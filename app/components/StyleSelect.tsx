@@ -8,9 +8,8 @@ interface Props {
 const StyleSelect: React.FC<Props> = ({ value, onChange }) => {
   const styles = [
     "ドライブ主体で攻めたい",
-    "前陣でスピード重視",
-    "カットマンを目指す",
-    "相手を翻弄したい",
+    "前陣で速攻で決めたい",
+    "ひたすら守ってミスを誘いたい"
   ];
 
   return (

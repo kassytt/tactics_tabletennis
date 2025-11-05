@@ -16,7 +16,7 @@ const RubberSelect: React.FC<Props> = ({ values, onChange, racket }) => {
 
   return (
     <div>
-      <h2 className="font-semibold mb-2">ラバー選択</h2>
+      <h2 className="font-semibold mb-2">ラバーは何を使いたいですか？</h2>
 
       {/* フォア面 */}
       <div className="mb-4">
