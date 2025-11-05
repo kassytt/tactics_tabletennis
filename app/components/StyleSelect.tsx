@@ -7,11 +7,10 @@ interface Props {
 
 const StyleSelect: React.FC<Props> = ({ value, onChange }) => {
   const styles = [
-    "ドライブ攻撃型",
-    "前陣速攻型",
-    "カット型",
-    "異質攻撃型",
-    "悩み中",
+    "ドライブ主体で攻めたい",
+    "前陣でスピード重視",
+    "カットマンを目指す",
+    "相手を翻弄したい",
   ];
 
   return (

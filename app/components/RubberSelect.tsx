@@ -8,7 +8,7 @@ interface Props {
 
 const RubberSelect: React.FC<Props> = ({ values, onChange, racket }) => {
   // 「なし」を含める
-  const rubberTypes = ["裏ソフト", "表ソフト", "粒高", "アンチ", "なし"];
+  const rubberTypes = ["裏ソフト", "表ソフト", "粒高", "なし"];
 
   const handleChange = (side: "forehand" | "backhand", value: string) => {
     onChange({ ...values, [side]: value });
