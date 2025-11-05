@@ -1,31 +1,38 @@
-"use client";
+import React from "react";
 
-type Props = {
+interface Props {
   value: string;
   onChange: (value: string) => void;
-};
+}
 
-const styles = ["両ハンドドライブ型", "カットマン", "異質攻撃型", "前陣速攻型", "ペン攻撃型"];
+const StyleSelect: React.FC<Props> = ({ value, onChange }) => {
+  const styles = [
+    "攻撃型（ドライブ主体）",
+    "前陣速攻型",
+    "カット型",
+    "オールラウンド型",
+    "悩み中",
+  ];
 
-export default function StyleSelect({ value, onChange }: Props) {
   return (
     <div>
-      <h2 className="font-semibold mb-2">戦型スタイルを選択</h2>
+      <h2 className="font-semibold mb-2">戦型スタイル</h2>
       <div className="flex flex-col gap-2">
-        {styles.map((s) => (
-          <label key={s} className="flex items-center gap-2">
+        {styles.map((style) => (
+          <label key={style} className="flex items-center gap-2">
             <input
               type="radio"
               name="style"
-              value={s}
-              checked={value === s}
-              onChange={() => onChange(s)}
-              className="cursor-pointer"
+              value={style}
+              checked={value === style}
+              onChange={() => onChange(style)}
             />
-            {s}
+            {style}
           </label>
         ))}
       </div>
     </div>
   );
-}
+};
+
+export default StyleSelect;

@@ -1,41 +1,62 @@
-"use client";
+import React from "react";
 
-type Props = {
-  values: string[];
-  onChange: (values: string[]) => void;
-};
+interface Props {
+  values: { forehand: string; backhand: string };
+  onChange: (values: { forehand: string; backhand: string }) => void;
+  racket: string;
+}
 
-const rubbers = ["裏ソフト", "表ソフト", "粒高", "アンチ"];
+const RubberSelect: React.FC<Props> = ({ values, onChange, racket }) => {
+  // 「なし」を含める
+  const rubberTypes = ["裏ソフト", "表ソフト", "粒高", "アンチ", "なし"];
 
-export default function RubberSelect({ values, onChange }: Props) {
-  const handleToggle = (rubber: string) => {
-    const limit = 2; // 上限は常に2枚
-
-    if (values.includes(rubber)) {
-      onChange(values.filter((r) => r !== rubber));
-    } else if (values.length < limit) {
-      onChange([...values, rubber]);
-    }
+  const handleChange = (side: "forehand" | "backhand", value: string) => {
+    onChange({ ...values, [side]: value });
   };
 
   return (
     <div>
-      <h2 className="font-semibold mb-2">② 使用ラバーを選択（最大2枚）</h2>
-      <div className="flex flex-col gap-2">
-        {rubbers.map((r) => (
-          <label key={r} className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              value={r}
-              checked={values.includes(r)}
-              onChange={() => handleToggle(r)}
-              disabled={!values.includes(r) && values.length >= 2} // 2枚以上選べない
-              className="cursor-pointer"
-            />
-            {r}
-          </label>
-        ))}
+      <h2 className="font-semibold mb-2">ラバー選択</h2>
+
+      {/* フォア面 */}
+      <div className="mb-4">
+        <p className="font-medium mb-1">フォア面</p>
+        <div className="flex flex-wrap gap-2">
+          {rubberTypes.map((type) => (
+            <label key={`fore-${type}`} className="flex items-center gap-1">
+              <input
+                type="radio"
+                name="forehand"
+                value={type}
+                checked={values.forehand === type}
+                onChange={() => handleChange("forehand", type)}
+              />
+              {type}
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* バック面 */}
+      <div>
+        <p className="font-medium mb-1">バック面</p>
+        <div className="flex flex-wrap gap-2">
+          {rubberTypes.map((type) => (
+            <label key={`back-${type}`} className="flex items-center gap-1">
+              <input
+                type="radio"
+                name="backhand"
+                value={type}
+                checked={values.backhand === type}
+                onChange={() => handleChange("backhand", type)}
+              />
+              {type}
+            </label>
+          ))}
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default RubberSelect;
