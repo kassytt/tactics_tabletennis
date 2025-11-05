@@ -67,7 +67,7 @@ export default function HomePage() {
         {racket && (
           <RubberSelect racket={racket} values={rubbers} onChange={setRubbers} />
         )}
-        {racket && (rubbers.forehand || rubbers.backhand) && (
+        {racket && rubbers.forehand && rubbers.backhand && (
           <StyleSelect value={style} onChange={setStyle} />
         )}
 
