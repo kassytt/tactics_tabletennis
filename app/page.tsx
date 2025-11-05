@@ -53,7 +53,7 @@ export default function HomePage() {
     }
   };
 
-  const canSubmit = racket && style && (rubbers.forehand || rubbers.backhand);
+  const canSubmit = racket && style && rubbers.forehand && rubbers.backhand;
 
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
