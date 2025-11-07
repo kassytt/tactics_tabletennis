@@ -2,166 +2,225 @@
 
 import { useState, useEffect } from "react";
 
+type ChatMessage = { role: "user" | "assistant"; content: string };
+
 export default function ServeResultPage() {
-  const [tacticAdvice, setTacticAdvice] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [advice, setAdvice] = useState<string | null>(null);
+
   const [practiceAdvice, setPracticeAdvice] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  
+  const [showPractice, setShowPractice] = useState(false);
+  const [loadingPractice, setLoadingPractice] = useState(false);
 
-  // ✅ チャット用ステート
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
-  const [chatHistory, setChatHistory] = useState<
-    { role: "user" | "assistant"; content: string }[]
-  >([]);
 
+  // 戦術アドバイス折りたたみ
+  const [showTactic, setShowTactic] = useState(true);
+
+  // --- 戦術アドバイス取得 ---
   useEffect(() => {
-    const advice = sessionStorage.getItem("tacticalAdvice");
-    if (advice) {
-      setTacticAdvice(advice);
-    }
-  }, []);
-
-  const handlePracticeAdvice = async () => {
-    setLoading(true);
-    try {
+    const fetchAdvice = async () => {
       const style = sessionStorage.getItem("selectedStyle");
       const spin = sessionStorage.getItem("selectedServeSpin");
       const serveType = sessionStorage.getItem("selectedServeType");
 
+      if (!style || !spin || !serveType) {
+        setAdvice(
+          "戦術アドバイスを取得できませんでした。前のページで入力してください。"
+        );
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/tactical_advise", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ style, spin, serveType }),
+        });
+
+        if (!res.ok) throw new Error(`APIエラー: ${res.status}`);
+        const data = await res.json();
+
+        if (data.advice) {
+          setAdvice(data.advice);
+        } else {
+          setAdvice("戦術アドバイスが見つかりません。");
+        }
+      } catch (error) {
+        console.error(error);
+        setAdvice("戦術アドバイス取得中にエラーが発生しました。");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAdvice();
+  }, []);
+
+  // --- 練習アドバイス取得 ---
+  const handleFetchPractice = async () => {
+    setShowPractice(true);
+    setLoadingPractice(true);
+
+    if (practiceAdvice) {
+      setLoadingPractice(false);
+      return; // 既に取得済みなら fetch しない
+    }
+
+    const style = sessionStorage.getItem("selectedStyle");
+    const spin = sessionStorage.getItem("selectedServeSpin");
+    const serveType = sessionStorage.getItem("selectedServeType");
+
+    try {
       const res = await fetch("/api/tactical_advise/practice", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          style,
-          spin,
-          serveType,
-          tactic: tacticAdvice,
-        }),
+        body: JSON.stringify({ style, spin, serveType, tacticalAdvice: advice }),
       });
 
       const data = await res.json();
-      setPracticeAdvice(data.practiceAdvice);
-    } catch (e) {
-      alert("練習アドバイスの取得に失敗しました。");
+      if (data.practiceAdvice) setPracticeAdvice(data.practiceAdvice);
+      else setPracticeAdvice("練習アドバイスが見つかりません。");
+    } catch (error) {
+      console.error(error);
+      setPracticeAdvice("練習アドバイス取得中にエラーが発生しました。");
     } finally {
-      setLoading(false);
+      setLoadingPractice(false);
     }
   };
 
+  // --- チャット送信 ---
   const handleSendMessage = async () => {
     if (!chatInput.trim()) return;
 
-    const newHistory = [
+    const newHistory: ChatMessage[] = [
       ...chatHistory,
-      { role: "user" as const, content: chatInput },
+      { role: "user", content: chatInput },
     ];
     setChatHistory(newHistory);
-    setChatInput(""); // ✅ 入力欄クリア
+    setChatInput("");
 
-    const res = await fetch("/api/tactical_advise/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ history: newHistory }),
-    });
+    try {
+      const res = await fetch("/api/tactical_advise/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ history: newHistory }),
+      });
 
-    const data = await res.json();
-    if (data.reply) {
-      setChatHistory([
-        ...newHistory,
-        { role: "assistant", content: data.reply },
-      ]);
+      const data = await res.json();
+      if (data.reply) {
+        setChatHistory([...newHistory, { role: "assistant", content: data.reply }]);
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
 
   return (
     <main className="flex flex-col items-center justify-start min-h-screen bg-gray-50 p-6">
       <h1 className="text-2xl font-bold mb-6 text-gray-800">
-        サーブからの戦術アドバイス結果
+        サーブからの戦術アドバイス
       </h1>
 
-      {tacticAdvice ? (
-        <div className="bg-white p-6 rounded-xl shadow w-full max-w-2xl mb-6 border">
-          <h2 className="font-semibold text-lg mb-2 text-indigo-700">
-            🧠 戦術アドバイス
-          </h2>
-          <p className="whitespace-pre-wrap text-gray-800">{tacticAdvice}</p>
-        </div>
+      {loading ? (
+        <p className="text-gray-600">読み込み中...</p>
       ) : (
-        <p>戦術アドバイスが見つかりません。</p>
-      )}
-
-      {!practiceAdvice && (
-        <button
-          onClick={handlePracticeAdvice}
-          disabled={loading}
-          className="px-6 py-3 bg-emerald-600 text-white rounded-lg shadow hover:bg-emerald-700 transition disabled:opacity-50"
-        >
-          {loading ? "生成中..." : "この戦術を伸ばす練習方法を聞く"}
-        </button>
-      )}
-
-      {practiceAdvice && (
-        <div className="bg-white p-6 rounded-xl shadow w-full max-w-2xl mt-6 border">
-          <h2 className="font-semibold text-lg mb-2 text-emerald-700">
-            🏓 練習アドバイス
-          </h2>
-          <p className="whitespace-pre-wrap text-gray-800">{practiceAdvice}</p>
-        </div>
-      )}
-
-      {/* --- チャットエリア --- */}
-      {practiceAdvice && (
-        <div className="w-full max-w-2xl mt-10 bg-white rounded-xl shadow border p-6">
-          <h2 className="font-semibold text-lg mb-4 text-gray-800">
-            💬 AIコーチとチャット
-          </h2>
-
-          <div className="h-64 overflow-y-auto border rounded-lg p-3 bg-gray-50 mb-4">
-            {chatHistory.map((msg, idx) => (
-              <div
-                key={idx}
-                className={`mb-3 ${
-                  msg.role === "user" ? "text-right" : "text-left"
-                }`}
+        <>
+          {/* --- 戦術アドバイス 折りたたみ --- */}
+          {advice && (
+            <div className="w-full max-w-2xl mb-4 border rounded-xl shadow bg-white">
+              <button
+                className="w-full px-6 py-3 text-left font-semibold text-lg text-indigo-700 flex justify-between items-center focus:outline-none"
+                onClick={() => setShowTactic(!showTactic)}
               >
-                <span
-                  className={`inline-block px-3 py-2 rounded-lg ${
-                    msg.role === "user"
-                      ? "bg-emerald-100 text-gray-800"
-                      : "bg-gray-200 text-gray-800"
-                  }`}
-                >
-                  {msg.content}
-                </span>
-              </div>
-            ))}
-          </div>
+                🎯 戦術アドバイス
+                <span>{showTactic ? "▲" : "▼"}</span>
+              </button>
+              {showTactic && (
+                <div className="p-6 text-gray-800 whitespace-pre-wrap">
+                  {advice}
+                </div>
+              )}
+            </div>
+          )}
 
-          <div className="flex gap-2">
-            <input
-              type="text"
-              placeholder="質問を入力..."
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              onKeyDown={async (e) => {
-                // 日本語入力変換中なら送信しない
-                if (e.nativeEvent.isComposing) return;
-
-                if (e.key === "Enter" && chatInput.trim()) {
-                  e.preventDefault();
-                  await handleSendMessage();
-                }
-              }}
-              className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-            />
+          {/* --- 練習アドバイス ボタン --- */}
+          {advice && !showPractice && (
             <button
-              onClick={handleSendMessage}
-              className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
+              className="w-full max-w-2xl mb-4 px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
+              onClick={handleFetchPractice}
             >
-              送信
+              🏓 練習方法を見る
             </button>
-          </div>
-        </div>
+          )}
+
+          {/* --- 練習アドバイス 折りたたみ --- */}
+          {showPractice && (
+            <div className="w-full max-w-2xl mb-4 border rounded-xl shadow bg-white">
+              <div className="px-6 py-3 text-left font-semibold text-lg text-emerald-700 flex justify-between items-center">
+                🏓 練習アドバイス
+              </div>
+              <div className="p-6 text-gray-800 whitespace-pre-wrap">
+                {loadingPractice ? "読み込み中..." : practiceAdvice || "練習アドバイスがありません。"}
+              </div>
+            </div>
+          )}
+
+          {/* --- チャットエリア --- */}
+          {practiceAdvice && (
+            <div className="w-full max-w-2xl mt-6 bg-white rounded-xl shadow border p-6">
+              <h2 className="font-semibold text-lg mb-4 text-gray-800">
+                💬 AIコーチとチャット
+              </h2>
+
+              <div className="h-64 overflow-y-auto border rounded-lg p-4 bg-gray-50 mb-4 space-y-3">
+                {chatHistory.map((msg, idx) => (
+                  <div
+                    key={idx}
+                    className={`flex ${
+                      msg.role === "user" ? "justify-end" : "justify-start"
+                    }`}
+                  >
+                    <div
+                      className={`max-w-[80%] px-4 py-2 rounded-2xl whitespace-pre-wrap leading-relaxed ${
+                        msg.role === "user"
+                          ? "bg-emerald-100 text-gray-800 rounded-br-none"
+                          : "bg-gray-200 text-gray-800 rounded-bl-none"
+                      }`}
+                    >
+                      {msg.content}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="質問を入力..."
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={async (e) => {
+                    if (e.nativeEvent.isComposing) return;
+                    if (e.key === "Enter" && chatInput.trim()) {
+                      e.preventDefault();
+                      await handleSendMessage();
+                    }
+                  }}
+                  className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                />
+                <button
+                  onClick={handleSendMessage}
+                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
+                >
+                  送信
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </main>
   );
