@@ -10,12 +10,12 @@ export default function ServeResultPage() {
 
   const [practiceAdvice, setPracticeAdvice] = useState<string | null>(null);
   const [showPractice, setShowPractice] = useState(false);
+  const [showPracticeAdvice, setShowPracticeAdvice] = useState(true);
   const [loadingPractice, setLoadingPractice] = useState(false);
 
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
 
-  // 戦術アドバイス折りたたみ
   const [showTactic, setShowTactic] = useState(true);
 
   // --- 戦術アドバイス取得 ---
@@ -43,11 +43,7 @@ export default function ServeResultPage() {
         if (!res.ok) throw new Error(`APIエラー: ${res.status}`);
         const data = await res.json();
 
-        if (data.advice) {
-          setAdvice(data.advice);
-        } else {
-          setAdvice("戦術アドバイスが見つかりません。");
-        }
+        setAdvice(data.advice || "戦術アドバイスが見つかりません。");
       } catch (error) {
         console.error(error);
         setAdvice("戦術アドバイス取得中にエラーが発生しました。");
@@ -81,8 +77,7 @@ export default function ServeResultPage() {
       });
 
       const data = await res.json();
-      if (data.practiceAdvice) setPracticeAdvice(data.practiceAdvice);
-      else setPracticeAdvice("練習アドバイスが見つかりません。");
+      setPracticeAdvice(data.practiceAdvice || "練習アドバイスが見つかりません。");
     } catch (error) {
       console.error(error);
       setPracticeAdvice("練習アドバイス取得中にエラーが発生しました。");
@@ -128,7 +123,7 @@ export default function ServeResultPage() {
         <p className="text-gray-600">読み込み中...</p>
       ) : (
         <>
-          {/* --- 戦術アドバイス 折りたたみ --- */}
+          {/* --- 戦術アドバイス --- */}
           {advice && (
             <div className="w-full max-w-2xl mb-4 border rounded-xl shadow bg-white">
               <button
@@ -139,14 +134,12 @@ export default function ServeResultPage() {
                 <span>{showTactic ? "▲" : "▼"}</span>
               </button>
               {showTactic && (
-                <div className="p-6 text-gray-800 whitespace-pre-wrap">
-                  {advice}
-                </div>
+                <div className="p-6 text-gray-800 whitespace-pre-wrap">{advice}</div>
               )}
             </div>
           )}
 
-          {/* --- 練習アドバイス ボタン --- */}
+          {/* --- 練習アドバイス ボタン（初回 fetch 用） --- */}
           {advice && !showPractice && (
             <button
               className="w-full max-w-2xl mb-4 px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
@@ -156,15 +149,23 @@ export default function ServeResultPage() {
             </button>
           )}
 
-          {/* --- 練習アドバイス 折りたたみ --- */}
+          {/* --- 練習アドバイス 表示エリア --- */}
           {showPractice && (
             <div className="w-full max-w-2xl mb-4 border rounded-xl shadow bg-white">
-              <div className="px-6 py-3 text-left font-semibold text-lg text-emerald-700 flex justify-between items-center">
+              <button
+                className="w-full px-6 py-3 text-left font-semibold text-lg text-indigo-700 flex justify-between items-center focus:outline-none"
+                onClick={() => setShowPracticeAdvice(!showPracticeAdvice)}
+              >
                 🏓 練習アドバイス
-              </div>
-              <div className="p-6 text-gray-800 whitespace-pre-wrap">
-                {loadingPractice ? "読み込み中..." : practiceAdvice || "練習アドバイスがありません。"}
-              </div>
+                <span>{showPracticeAdvice ? "▲" : "▼"}</span>
+              </button>
+              {showPracticeAdvice && (
+                <div className="p-6 text-gray-800 whitespace-pre-wrap">
+                  {loadingPractice
+                    ? "読み込み中..."
+                    : practiceAdvice || "練習アドバイスがありません。"}
+                </div>
+              )}
             </div>
           )}
 
