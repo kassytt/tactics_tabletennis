@@ -88,7 +88,7 @@ export default function TacticalAdvisePage() {
               onClick={() => handleNavigate("receive")}
               className="px-6 py-4 bg-emerald-500 text-white rounded-xl shadow hover:bg-emerald-600 transition"
             >
-              レシーブからの戦術を立てる
+              レシーブからの戦術を立てる（開発中）
             </button>
           </div>
         </>
