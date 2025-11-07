@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import RubberSelect from "../components/RubberSelect";
-import RacketSelect from "../components/RacketSelect";
+import RubberSelect from "../../components/RubberSelect";
+import RacketSelect from "../../components/RacketSelect";
 
 export default function ResultPage() {
   const router = useRouter();
