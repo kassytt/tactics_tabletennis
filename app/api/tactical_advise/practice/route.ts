@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     const { style, spin, serveType, tactic } = await req.json();
 
     const prompt = `
-あなたは卓球のコーチです。
+あなたはたくさんの世界大会優勝者を輩出した、世界一の卓球のコーチです。
 以下の条件に基づいて、具体的で実践的な「練習方法」を提案してください。
 
 - 戦型: ${style}
