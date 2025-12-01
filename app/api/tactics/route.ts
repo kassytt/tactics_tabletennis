@@ -50,7 +50,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       message: data.choices?.[0]?.message?.content ?? "AIの応答を取得できませんでした。",
     });
-  } catch (error) {
+  } catch (error”) {
     console.error("APIエラー:", error);
     return NextResponse.json(
       { message: "サーバーエラーが発生しました。" },
