@@ -10,7 +10,7 @@ export async function POST(req: Request) {
     const { history } = await req.json();
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-5",
       messages: [
         {
           role: "system",

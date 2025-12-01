@@ -39,7 +39,7 @@ export async function POST(req: Request) {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini", // 速くてコスパの良いモデル
+        model: "gpt-5",
         messages: [{ role: "user", content: prompt }],
         temperature: 0.8,
       }),
