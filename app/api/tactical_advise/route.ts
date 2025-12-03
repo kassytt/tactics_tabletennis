@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     `;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-5",
+      model: "gpt-5.1",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.8,
     });
